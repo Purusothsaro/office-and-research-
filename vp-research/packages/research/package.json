@@ -1,0 +1,1 @@
+{"name":"@octo/research","version":"0.1.0","private":true,"type":"module","exports":{".":"./src/index.ts"},"dependencies":{"@cantoo/pdf-lib":"^2.11.1","@octo/core":"0.1.0","@octo/editor-document":"0.1.0","@tesseract.js-data/eng":"^1.0.0","marked":"^18.1.2","pdfjs-dist":"^6.4.299","tesseract.js":"^7.0.0","tesseract.js-core":"^7.0.0","@tiptap/core":"^3.32.0"}}

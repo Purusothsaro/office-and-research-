@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@source "../../../packages/research";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --color-ink-950: #0b1220;
+  --color-ink-900: #111a2e;
+  --color-ink-800: #1b2640;
+  --color-ink-700: #2a3756;
+  --color-brand-50: #f3f1fe;
+  --color-brand-100: #e6e1fd;
+  --color-brand-200: #cfc5fb;
+  --color-brand-500: #7056e8;
+  --color-brand-600: #5b3fd6;
+  --color-brand-700: #4a31b4;
+}
+
+html, body, #root { height: 100%; }
+body { @apply bg-slate-100 text-slate-900 antialiased; overscroll-behavior: none; }
+:focus-visible { outline: 2px solid var(--color-brand-600); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---- Panels ---------------------------------------------------------------- */
+.rs-splitter { position: relative; flex: 0 0 6px; cursor: col-resize; background: transparent; touch-action: none; }
+.rs-splitter::after { content: ""; position: absolute; inset: 0 2px; border-radius: 2px; background: #d6dbe4; transition: background .15s; }
+.rs-splitter:hover::after, .rs-splitter[data-active="true"]::after { background: var(--color-brand-500); }
+
+/* ---- Document viewer ------------------------------------------------------- */
+.rs-pages { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 40px 40px; min-height: 100%; }
+.rs-page { position: relative; flex-shrink: 0; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .12), 0 6px 18px rgba(15, 23, 42, .08); }
+.rs-page canvas { position: absolute; inset: 0; }
+.rs-page-label { position: absolute; right: -34px; top: 4px; font-size: 10.5px; color: #94a3b8; font-variant-numeric: tabular-nums; }
+.rs-marks { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+/* Marks are drawn over the text but don't catch the pointer (clicks are hit-tested), so text under them stays selectable. They remain focusable for keyboard use. */
+.rs-mark { position: absolute; pointer-events: none; border-radius: 2px; }
+.rs-page[data-over-mark] .pdf-text-layer span { cursor: pointer; }
+.rs-mark-highlight { opacity: .42; mix-blend-mode: multiply; }
+.rs-mark-highlight:hover { opacity: .6; }
+.rs-mark-underline { border-bottom: 2px solid; background: transparent; }
+.rs-mark-comment { border-bottom: 2px dotted; background: rgba(59, 130, 246, .08); }
+.rs-mark-excerpt { background: #7056e8; opacity: .22; mix-blend-mode: multiply; }
+.rs-mark-excerpt:hover { opacity: .38; outline: 1px solid #5b3fd6; }
+.rs-mark-hit { position: absolute; background: rgba(250, 204, 21, .5); border-radius: 2px; pointer-events: none; }
+.rs-mark-hit-current { background: rgba(249, 115, 22, .55); outline: 2px solid #f97316; }
+.rs-margin-pin { position: absolute; right: -30px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; pointer-events: auto; box-shadow: 0 1px 3px rgba(15, 23, 42, .2); }
+.rs-flash { position: absolute; border-radius: 2px; background: rgba(112, 86, 232, .32); outline: 2px solid #5b3fd6; animation: rs-flash 2s ease-out forwards; pointer-events: none; }
+@keyframes rs-flash { 0%, 65% { opacity: 1; } 100% { opacity: 0; } }
+.rs-collapsed-bar { display: flex; align-items: center; justify-content: center; gap: 8px; width: min(100%, 640px); padding: 6px 10px; border: 1px dashed #a99bf5; border-radius: 8px; background: #f5f3ff; color: #4a31b4; font-size: 12px; font-weight: 500; }
+.rs-page-collapse { position: absolute; left: -32px; top: 4px; opacity: 0; }
+.rs-page:hover .rs-page-collapse, .rs-page-collapse:focus-visible { opacity: 1; }
+.rs-overview { position: relative; width: 12px; flex-shrink: 0; background: #e8ebf1; border-left: 1px solid #d6dbe4; }
+.rs-ov { position: absolute; left: 2px; right: 2px; height: 4px; border-radius: 2px; transform: translateY(-50%); }
+.rs-ov:hover { left: 0; right: 0; height: 6px; }
+
+/* pdf.js text layer (adapted from pdf.js's viewer CSS, Apache-2.0) */
+.pdf-text-layer { position: absolute; inset: 0; overflow: clip; text-align: initial; line-height: 1; transform-origin: 0 0; z-index: 1; -webkit-text-size-adjust: none; text-size-adjust: none; forced-color-adjust: none; user-select: text;
+  --min-font-size: 1; --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size)); --min-font-size-inv: calc(1 / var(--min-font-size)); }
+.pdf-text-layer :is(span, br) { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; user-select: text; }
+.pdf-text-layer > :not(.markedContent), .pdf-text-layer .markedContent span:not(.markedContent) { z-index: 1; --font-height: 0; font-size: calc(var(--text-scale-factor) * var(--font-height)); --scale-x: 1; --rotate: 0deg; transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv)); }
+.pdf-text-layer .markedContent { display: contents; }
+.pdf-text-layer ::selection { background: rgba(91, 63, 214, .28); color: transparent; }
+.pdf-text-layer br::selection { background: transparent; }
+.pdf-text-layer .endOfContent { display: block; position: absolute; inset: 100% 0 0; z-index: 0; cursor: default; user-select: none; }
+.pdf-text-layer.selecting .endOfContent { top: 0; }
+
+/* ---- Canvas ------------------------------------------------------------------ */
+.rs-canvas { position: relative; flex: 1; overflow: hidden; touch-action: none; background-color: #f6f7fb; background-image: radial-gradient(#cdd3df 1px, transparent 1px); cursor: default; }
+.rs-canvas[data-mode="pan"] { cursor: grab; }
+.rs-canvas[data-panning="true"] { cursor: grabbing; }
+.rs-canvas[data-mode="connect"], .rs-canvas[data-mode="connect"] .rs-card { cursor: crosshair; }
+.rs-canvas[data-mode="pen"], .rs-canvas[data-mode="pen"] .rs-card { cursor: crosshair; }
+.rs-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.rs-card { position: absolute; border-radius: 10px; box-shadow: 0 1px 2px rgba(15, 23, 42, .1), 0 2px 8px rgba(15, 23, 42, .06); border: 1px solid #dfe3ea; background: #fff; display: flex; flex-direction: column; user-select: none; }
+.rs-card[data-selected="true"] { border-color: #5b3fd6; box-shadow: 0 0 0 2px rgba(112, 86, 232, .35), 0 6px 20px rgba(15, 23, 42, .12); }
+.rs-card[data-flash="true"] { animation: rs-card-flash 1.6s ease-out; }
+@keyframes rs-card-flash { 0%, 50% { box-shadow: 0 0 0 6px rgba(112, 86, 232, .45); } 100% { box-shadow: 0 1px 2px rgba(15, 23, 42, .1); } }
+.rs-card[data-dim="true"] { opacity: .25; }
+.rs-group { position: absolute; border-radius: 16px; border: 2px solid; }
+.rs-group[data-selected="true"] { box-shadow: 0 0 0 3px rgba(112, 86, 232, .3); }
+.rs-group[data-dim="true"] { opacity: .35; }
+.rs-resize { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, #b4bccb 50%, #b4bccb 60%, transparent 60%, transparent 70%, #b4bccb 70%, #b4bccb 80%, transparent 80%); border-bottom-right-radius: 10px; }
+.rs-svg { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; }
+.rs-connector { fill: none; stroke-width: 2; }
+.rs-connector-hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
+.rs-connector-label { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; background: #fff; border: 1.5px solid; cursor: pointer; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.rs-connector-label[data-selected="true"] { box-shadow: 0 0 0 3px rgba(112, 86, 232, .35); }
+.rs-marquee { position: absolute; border: 1px solid #5b3fd6; background: rgba(112, 86, 232, .08); pointer-events: none; }
+.rs-ink { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.rs-ink-hit { pointer-events: stroke; cursor: pointer; }
+
+/* ---- Selection chip -------------------------------------------------------------- */
+.rs-chip { position: absolute; z-index: 30; display: flex; align-items: center; gap: 2px; transform: translateX(-50%); background: #111a2e; color: #fff; border-radius: 10px; padding: 4px; box-shadow: 0 10px 28px rgba(15, 23, 42, .35); }
+.rs-chip button { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border-radius: 7px; font-size: 12px; font-weight: 500; }
+.rs-chip button:hover { background: #2a3756; }
+.rs-chip .rs-chip-primary { background: #5b3fd6; }
+.rs-chip .rs-chip-primary:hover { background: #4a31b4; }
+.rs-chip-sep { width: 1px; height: 18px; margin: 0 3px; background: #3a4766; }
+.rs-chip-grip { display: inline-flex; align-items: center; gap: 2px; padding: 0 6px; font-size: 11px; color: #9aa6c2; cursor: grab; }
+
+/* ---- Selection handles, active marks, drags ---------------------------------- */
+.rs-handle { position: absolute; z-index: 25; width: 2px; background: #5b3fd6; touch-action: none; cursor: ew-resize; }
+.rs-handle::after { content: ""; position: absolute; left: -6px; width: 14px; height: 14px; border-radius: 50%; background: #5b3fd6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .35); }
+.rs-handle-a::after { top: -14px; }
+.rs-handle-b::after { bottom: -14px; }
+.rs-mark[data-active="true"] { outline: 2px solid #5b3fd6; outline-offset: 1px; opacity: .55; }
+.rs-mark-excerpt[data-active="true"] { opacity: .45; }
+.rs-card[data-linked="true"] { box-shadow: 0 0 0 2px rgba(112, 86, 232, .55), 0 6px 18px rgba(15, 23, 42, .12); }
+body.rs-no-select, body.rs-no-select * { user-select: none !important; -webkit-user-select: none !important; }
+
+/* ---- Merged stacks --------------------------------------------------------------- */
+.rs-card[data-stack] { box-shadow: 0 1px 2px rgba(15, 23, 42, .08); }
+.rs-card[data-stack="first"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.rs-card[data-stack="middle"] { border-radius: 0; border-top: 1px dashed #c4b5fd; }
+.rs-card[data-stack="last"] { border-top-left-radius: 0; border-top-right-radius: 0; border-top: 1px dashed #c4b5fd; }
+.rs-card[data-merge-target="true"] { box-shadow: 0 0 0 3px #7056e8, 0 10px 28px rgba(91, 63, 214, .25); }
+.rs-card[data-merge-target="true"]::after { content: "Release to merge"; position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 600; color: #fff; background: #5b3fd6; border-radius: 999px; padding: 2px 9px; pointer-events: none; }
+
+/* ---- Relationships of the selected card ------------------------------------------ */
+.rs-card[data-related="true"], .rs-group[data-related="true"] { box-shadow: 0 0 0 2.5px var(--rel, #7056e8), 0 6px 18px rgba(15, 23, 42, .12); }
+
+/* ---- Reader tools, ink, margin bars ---------------------------------------------- */
+.rs-tool-layer { position: absolute; inset: 0; z-index: 6; touch-action: none; }
+.rs-tool-layer[data-tool="pen"], .rs-tool-layer[data-tool="highlighter"] { cursor: crosshair; }
+.rs-tool-layer[data-tool="eraser"] { cursor: cell; }
+.rs-tool-layer[data-tool="lasso"] { cursor: crosshair; }
+.rs-lasso { position: absolute; border: 1.5px dashed #5b3fd6; background: rgba(112, 86, 232, .08); }
+.rs-doc-ink { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; overflow: visible; }
+.rs-doc-ink polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+[data-reader-scroll][data-tool]:not([data-tool="text"]) .pdf-text-layer { pointer-events: none; }
+.rs-margin-bar { position: absolute; right: 6px; width: 5px; border-radius: 3px; background: #38bdf8; pointer-events: auto; cursor: pointer; opacity: .85; }
+.rs-margin-bar:hover, .rs-margin-bar[data-active="true"] { background: #5b3fd6; width: 7px; opacity: 1; }
+.rs-page-tag { position: absolute; left: 10px; top: 8px; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: #94a3b8; pointer-events: none; }
+
+/* ---- Card comments ----------------------------------------------------------------- */
+.rs-card-comment { position: absolute; right: 8px; top: -11px; display: inline-flex; align-items: center; gap: 3px; max-width: 75%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border-radius: 999px; background: #0ea5e9; color: #fff; font-size: 10.5px; font-weight: 600; padding: 1px 7px; box-shadow: 0 1px 3px rgba(15, 23, 42, .25); }
+/* Merged cards: the seam is a liquid joint rather than a dashed line. */
+.rs-card[data-stack="middle"], .rs-card[data-stack="last"] { border-top: 1px solid #dfe3ea; }
+.rs-card[data-stack] { border-radius: 10px; }

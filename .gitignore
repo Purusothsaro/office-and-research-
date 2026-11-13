@@ -1,0 +1,12 @@
+# Third-party checkout of https://github.com/morluto/rea — not part of this product.
+rea/
+
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example
+*.log

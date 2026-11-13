@@ -1,0 +1,25 @@
+# Security
+
+- **Accounts:**
+  - scrypt password hashes;
+  - HTTP-only, SameSite=Strict session cookies (the token is stored only as a SHA-256 hash);
+  - sign-in and registration rate-limited.
+- **Cross-site requests:** every mutating `/api` request must carry the `X-Octo-Client: web` header, which a cross-site page can't send.
+- **Authorisation:**
+  - projects are looked up by owner and organisation (`users.orgId`, defaulting to a personal organisation);
+  - files are looked up by owner;
+  - everything else gets `404`, and tests cover every route.
+- **Validation:**
+  - uploads are checked by content (magic bytes, OOXML structure, ZIP-bomb limits, UTF-8), with a 100 MB limit;
+  - workspace saves must be JSON of the research kind and version, at most 10 MB, with compare-and-set revisions;
+  - writes are rate-limited.
+- **Documents are never modified.** Annotations, ink and excerpts live in the workspace. Converted and OCR copies are separate files linked to their original and deleted with it.
+- **OCR runs in the browser** (Tesseract WebAssembly), with the engine and model served from this app's origin. No document goes to an external service.
+- **Safe rendering:**
+  - PDFs open without scripting or XFA;
+  - Markdown goes through a sanitising importer;
+  - user text is rendered as text;
+  - SVG exports are escaped.
+- **Audit:** events record ids, revisions and sizes, never names, case details or document text.
+- **Device storage:** IndexedDB holds unsynced edits and text indexes per user id. Signing out doesn't clear it yet; on shared machines, clear site data.
+- **Not built yet:** sharing between users, organisation administration, and object storage (S3/Azure) for production.
